@@ -178,6 +178,68 @@ def _layer_instance_dispatch(caller, default_definition):
   return _secure_dispatch_closure
 
 
+#### Support for dispatching at runtime #### 
+
+def secure_dispatch_runtime(modules, context_def):
+  """
+  <Purpose>
+    Allows a repy program to evaluate new code under specified
+    reference monitors and provide new context elements to the
+    initial context definition.
+
+  <Arguments>
+    modules:
+        A list of modules to invoke.      
+
+    context_def:
+        The definition of the context for the next layer. The
+        INIT_DEFINITION defined above will be consolidated 
+        with this argument.
+
+  <Exceptions>
+    As with the module being evaluated. An exception will be raised
+    if the module to be evaluated cannot be initialized in a VirtualNamespace
+    due to safety or syntax problems, or if the module does not exist.
+
+    If the definition of the context is invalid, a RepyArgumentError will
+    be raised.
+
+    If the list of modules is invalid, a RepyArgumentError will be raised.
+
+  <Side Effects>
+    Execution will switch to the first member of the modules list.
+  """
+
+  # Check that there is a module to invoke
+  if len(modules) == 0:
+    raise RepyArgumentError("Must provide a list with at least one element") 
+
+  # Prepare a base context to layer, we use callargs because that is 
+  # where encasement lib expects to find subsequent modules to invoke
+  context_to_call = _context.copy()
+  context_to_call['callargs'] = modules
+  context_to_call['_context'] = context_to_call
+
+  # Get layer to run
+  next_layer = context_to_call['callargs'][0]
+
+  # Load in the code
+  virt = _layer_code(next_layer)
+
+  # Merge the initial definition with our provided context 
+  # the provided context takes priority if any collisions 
+  # occur
+  merged_context = context_def.copy()
+  for key in INIT_DEFINITION.keys():
+    if not key in merged_context.keys():
+      merged_context[key] = INIT_DEFINITION[key]
+
+  # Layer context_to_call to set up callargs properly
+  eval_context = _layer_context(context_to_call, merged_context)
+
+  # Begin the evaluation
+  virt.evaluate(eval_context)
+
 #### Support for dispatch ####
 
 # Securely dispatches the next security layer
