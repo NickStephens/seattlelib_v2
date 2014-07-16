@@ -1,5 +1,6 @@
 """
 Author: Armon Dadgar
+
 Description:
   This module is designed to help construct security layers.
 
@@ -208,6 +209,34 @@ def secure_dispatch_runtime(modules, context_def):
 
   <Side Effects>
     Execution will switch to the first member of the modules list.
+
+  <Usage>
+    secure_dispatch_runtime(['security_layer1.r2py', 'security_layer2.r2py',
+    'sheltered_child.r2py'], {})
+
+    This is the same as doing this on the command line:
+    $ python repy.py restrictions.text encasementlib.r2py \
+    security_layer1.r2py security_layer2.r2py sheltered_child.r2py
+
+    When sheltered_child is finished executed control will return back 
+    to the caller of secure_dispatch_runtime. 
+
+    Additionally you can provide new context members to the child being
+    evaluated. This is helpful for when the caller needs to execute code
+    under a security layer, but also needs to allow the child access to
+    some resource that only exists in the parent. 
+
+    For example, a server will have a network socket describing a new 
+    connection when a client connects. If we want to execute a worker
+    thread to handle this connection under a security layer we need 
+    some mechanism of passing the worker thread this new socket descriptor.
+    This is what the second argument is for.
+
+    security_layer_dispatch([security_layer.r2py, ..., worker.r2py',\
+    {'client_socket': TYPE:ANY, TARGET:client_socket})
+
+    Now all the code evaluated will have access to 'client_socket' in their
+    context.
   """
 
   # Check that there is a module to invoke
