@@ -1,5 +1,0 @@
-
-assert(check_constant == 'validateme')
-assert('check_function' in _context)
-
-check_function()

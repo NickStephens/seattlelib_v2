@@ -1,0 +1,51 @@
+"""
+<Author> 
+  Nick Stephens
+<Description>
+  This test checks secure_dispatch_runtime and makes sure it is producing
+  the expected behavior
+
+Expected Output:
+  TBD
+"""
+dy_import_module_symbols('encasementlib.r2py')
+
+TYPE="type"
+ARGS="args"
+RETURN="return"
+EXCP="exceptions"
+TARGET="target"
+FUNC="func"
+OBJC="objc"
+CONST="const"
+ANY="any"
+
+# Remove a a child's file visibility
+if callfunc == 'initialize':
+
+  # should throw an exception
+  try:
+    secure_dispatch_runtime([], {})
+  except RepyArgumentError as e:
+    log('Expected error: ', str(e), '\n')
+
+
+  child_prog = 'test_dispatch_runtime_child.r2py'
+  security_layer = 'test_dispatch_runtime_layer.r2py'
+
+  log('Evaluating', child_prog, 'with no security layers\n') 
+  # load in our test child
+  code = openfile(child_prog, False).readat(None, 0)
+  virt = createvirtualnamespace(code, child_prog)
+
+  # this will evaluate the child with no restrictions
+  virt.evaluate(_context.copy())
+  log('Completed evaluation\n')
+
+  log('Now evaluating', child_prog, 'with security layer',\
+     security_layer, '\n')
+  # should evaluate a new the child now with the security layer
+  # this will also allow both to see the check_constant string
+  # test_dispatch_runtime_layer will test for this string
+  secure_dispatch_runtime([security_layer, child_prog],\
+     {"check_constant":{TYPE:CONST, TARGET:"validateme"}})

@@ -1,0 +1,19 @@
+TYPE="type"
+ARGS="args"
+RETURN="return"
+EXCP="exceptions"
+TARGET="target"
+FUNC="func"
+OBJC="objc"
+CONST="const"
+ANY="any"
+
+def file_viel():
+  return []
+
+# did we get passed the check_constant?
+assert(check_constant == 'validateme')
+
+CHILD_CONTEXT_DEF['listfiles'] = {TYPE:FUNC, ARGS:None, EXCP:Exception, RETURN:list, TARGET:file_viel}
+
+secure_dispatch_module()
